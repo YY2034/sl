@@ -1,0 +1,222 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+	<title>扫雷游戏</title>
+</head>
+<style>
+    *{
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+    body{
+        background: url(bgl.jpg);
+        /*background-repeat: no-repeat;*/
+    }
+	#sence{
+		width: 600px;
+		height: 600px;
+		/*border: 1px solid #ccc;*/
+		margin: auto;
+		position: absolute;
+		left: 0;
+		right: 0;
+		top: 0;
+		bottom: 0;
+
+	}
+	.block {
+
+        /*border: 1px solid #ccc;*/
+        width: 58px;
+        height: 58px;
+        float: left;
+        background:url(bga.png);
+        background-repeat: no-repeat;
+        text-align: center;
+        line-height: 58px;
+
+	}
+	.biaoji{
+        background: url(bgc.png) ;
+        background-repeat: no-repeat;
+    }
+    .tip{
+        background: url(bgb.png) ;
+        background-repeat: no-repeat;
+    }
+      .tips{
+        width:300px;
+        height: 200px;
+        margin: auto;
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        display: none;
+        text-align: center;
+     }
+
+     .tips li{
+        padding: 20px;
+        margin: 10px;
+        width: 200px;
+        height: 42px;
+        margin-left: 20px;
+        background-image: url(img/10.png);
+        background-size: 100%;
+        font-size: 30px;
+        text-align: center;
+    }
+     .leii{
+        background: url(lei.jpg) ;
+        background-repeat: no-repeat;
+				background-size: 48px 48px;
+     }
+		 /*.text{
+		 	color:#fff;
+			background: red;
+		 }*/
+</style>
+<body>
+    <div id="sence"></div>
+    <ul class="tips">
+        <li id = "restart">重新开始</li>
+    </ul>
+<script src="jQuery工程文件/jquery-1.12.0.js"></script>
+</body>
+<script>
+$(function(){
+    // 右键默认事件的禁用
+    $(document).on('contextmenu',false)
+    // 计算  判断以当前div 为中心的九宫格  类名为'lei'的个数
+    var zb2id = function(a,b){
+       return  a +'-'+ b;
+    }
+    var jisuan = function(x,y){
+        var num = 0;
+        if($('#' + zb2id(x+1,y)).is('.lei')){num++}
+        if($('#' + zb2id(x-1,y)).is('.lei')){num++}
+        if($('#' + zb2id(x,y+1)).is('.lei')){num++}
+        if($('#' + zb2id(x,y-1)).is('.lei')){num++}
+        if($('#' + zb2id(x+1,y+1)).is('.lei')){num++}
+        if($('#' + zb2id(x-1,y-1)).is('.lei')){num++}
+        if($('#' + zb2id(x+1,y-1)).is('.lei')){num++}
+        if($('#' + zb2id(x-1,y+1)).is('.lei')){num++}
+        return num
+    }
+    // 鼠标左键点击事件
+    var left = function(e){
+        if($(this).hasClass('biaoji')){return}
+        // ①点到雷 会炸
+        if(e.data.lei){
+            alert('踩雷了')
+            $('.lei').addClass('leii');
+            $('.tips').css('display','block')
+
+        }else{
+            $(this)
+            .addClass('tip')
+            .text(jisuan(e.data.x,e.data.y))
+        }
+    }
+    // 鼠标右键点击事件
+    var right = function(e){
+        if($(this).is('.tip')){return};
+        $(this).toggleClass('biaoji');
+        // 对游戏成功的判断
+        if($('.lei').length === $('.biaoji').length){
+            if($('.lei.biaoji').length === $('.lei').length){
+                alert('成功了');
+                $('.tips').css('display','block')
+
+            }else{
+                alert('再来')
+                $('.tips').css('display','block')
+            }
+        }
+    }
+    var clickHandler = function(e){
+        if(e.which === 1){
+            // left.call(this,e)
+            $.proxy(left,this)(e);
+        }
+        if(e.which === 3){
+            // right.call(this,e)
+            $.proxy(right,this)(e);
+        }
+    }
+
+    // 布场景
+    var buchangjing = function(){
+        for(var i = 0;i<10;i++){
+            for(var j=0;j<10;j++){
+                var isLei = Math.random()>0.8;
+                $('<div>')
+                .addClass(function(){
+                    return  'block '+ (isLei ? 'lei':'')
+                })
+                // .text(function(){
+                //     return isLei ? 'lei' :'';
+                // })
+                .attr('id',i +'-'+ j)
+                .on('mousedown',{x:i,y:j,lei:isLei},clickHandler)
+                .appendTo($('#sence'))
+            }
+        }
+    }
+     buchangjing();
+    $('#restart').on('click',function(){
+        $('.tips').css('display','none')
+        $('#sence').empty('');
+        buchangjing();
+    })
+
+})
+
+ </script>
+</html>
+
+<!-- 思路 -->
+
+<!-- 1.右键默认事件的阻止
+2.布场景
+
+    雷区  指定一个类名
+
+
+
+
+通过e.which判断点的是哪一个键(1左，2中，3右)
+1.点左键  e.which === 1
+
+    ①点到雷 会炸
+    ②会出现一个数字 提示用户周围有几个雷
+    ③左键出现数字 则不会触发右键点击事件
+
+
+
+2.点右键 e.which === 3
+    ①点一次插旗 ，
+    ②再点一次旗消失
+    ③如果已经插上旗则不能发生左键点击的事件
+
+如果雷的长度与旗的长度，游戏结束但成功未定
+判断旗的位置与雷的位置是否一致
+如果全一致则成功，否则失败
+
+
+通过添加类名来判断那些是雷 -->
+<!-- addClass(function(){
+    return 'block ' + isLei ? 'lei':''
+}) -->
+
+
+<!--1.点到雷输了 给用户提示所有雷的位置 弹出提示窗口 可以重新开始
+2.赢了之后弹出提示窗口 可以重新开始
+3.给游戏增加计时器 结合本地存储在右侧列出玩家的游戏记录
+4.ui
+5.破纪录之后撒花
+ -->
